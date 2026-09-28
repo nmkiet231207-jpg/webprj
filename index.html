@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Kho Hàng Mini - Pro Version</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        max-width: 600px;
+        margin: 0 auto;
+      }
+      /* Căn chỉnh các công cụ điều khiển */
+      .bang-dieu-khien {
+        background-color: #f1f1f1;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+      }
+      #o-tim-kiem {
+        width: 100%;
+        padding: 10px;
+        font-size: 16px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+      }
+      button {
+        padding: 8px 12px;
+        margin-right: 5px;
+        margin-bottom: 5px;
+        cursor: pointer;
+        border: 1px solid #999;
+        background-color: white;
+        border-radius: 4px;
+      }
+      button:hover {
+        background-color: #ddd;
+      }
+      #btn-xoa-loc {
+        background-color: #ff4d4d;
+        color: white;
+        border: none;
+      }
+      /* Giao diện sản phẩm */
+      .san-pham {
+        border: 1px solid #ddd;
+        padding: 15px;
+        margin-bottom: 10px;
+        border-radius: 5px;
+        background-color: #f9f9f9;
+        display: flex;
+        justify-content: space-between; /* Đẩy giá và tên ra 2 bên */
+        align-items: center;
+      }
+      .gia-tien {
+        color: red;
+        font-weight: bold;
+        font-size: 18px;
+        margin: 0;
+      }
+      h3 {
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Kho Hàng Mini (Bộ Lọc Đa Năng)</h2>
+
+    <!-- BẢNG ĐIỀU KHIỂN -->
+    <div class="bang-dieu-khien">
+      <input type="text" id="o-tim-kiem" placeholder="Nhập tên sản phẩm..." />
+
+      <div>
+        <strong>Lọc theo giá:</strong>
+        <!-- Gắn mức giá vào dataset -->
+        <button class="btn-loc-gia" data-gia="500000">Dưới 500k</button>
+        <button class="btn-loc-gia" data-gia="2000000">Dưới 2 Triệu</button>
+      </div>
+
+      <div style="margin-top: 10px">
+        <strong>Sắp xếp:</strong>
+        <button id="btn-sap-xep-tang">Giá: Thấp -> Cao</button>
+        <button id="btn-sap-xep-giam">Giá: Cao -> Thấp</button>
+      </div>
+
+      <div style="margin-top: 10px">
+        <button id="btn-xoa-loc">Xóa Tất Cả Bộ Lọc</button>
+      </div>
+    </div>
+
+    <!-- KHU VỰC HIỂN THỊ KẾT QUẢ -->
+    <div id="hien-thi"></div>
+
+    <script>
+      // 1. DỮ LIỆU GỐC (Dùng const để khóa chặt, không bao giờ thay đổi biến này)
+      const products = [
+        { id: 1, name: "Laptop Dell Latitude 5411", price: 12000000 },
+        { id: 2, name: "Bàn phím cơ Logitech", price: 850000 },
+        { id: 3, name: "Loa XDOBO X8 Max", price: 1500000 },
+        { id: 4, name: "Sữa rửa mặt CeraVe", price: 350000 },
+        { id: 5, name: "Kem chống nắng Sunplay Skin Aqua", price: 200000 },
+      ];
+
+      // 2. HÀM IN GIAO DIỆN (RENDER)
+      function render(danhSach) {
+        const vungHienThi = document.getElementById("hien-thi");
+
+        if (danhSach.length === 0) {
+          vungHienThi.innerHTML = "<p>Không tìm thấy sản phẩm nào phù hợp.</p>";
+          return;
+        }
+
+        const htmlArray = danhSach.map(
+          (item) => `
+          <div class="san-pham">
+            <h3>${item.name}</h3>
+            <p class="gia-tien">${item.price.toLocaleString("vi-VN")} đ</p>
+          </div>
+        `,
+        );
+
+        vungHienThi.innerHTML = htmlArray.join("");
+      }
+
+      // 3. TỔNG BỘ TƯ LỆNH: Nơi lưu trữ trí nhớ của bộ lọc
+      let tuKhoaHienTai = "";
+      let giaToiDaHienTai = Infinity;
+      let kieuSapXepHienTai = "mac_dinh"; // Có thể là: "mac_dinh", "tang", "giam"
+
+      // 4. TỔNG BỘ TƯ LỆNH: Hàm xử lý chính
+      function chayBoLocTongHop() {
+        // BƯỚC A: LỌC DỮ LIỆU
+        const ketQuaLoc = products.filter(function (item) {
+          // Điều kiện 1: Tên chứa từ khóa
+          const thoaManTuKhoa = item.name.toLowerCase().includes(tuKhoaHienTai);
+
+          // Điều kiện 2: Giá nhỏ hơn hoặc bằng giá tối đa
+          const thoaManGia = item.price <= giaToiDaHienTai;
+
+          // Phải thỏa mãn cả 2 thì mới giữ lại
+          return thoaManTuKhoa && thoaManGia;
+        });
+
+        // BƯỚC B: SẮP XẾP TRÊN KẾT QUẢ ĐÃ LỌC
+        // (Lúc này ketQuaLoc là một mảng mới tinh do filter tạo ra, nên ta cứ thoải mái dùng sort mà không sợ hỏng products gốc)
+        if (kieuSapXepHienTai === "tang") {
+          ketQuaLoc.sort((a, b) => a.price - b.price);
+        } else if (kieuSapXepHienTai === "giam") {
+          ketQuaLoc.sort((a, b) => b.price - a.price);
+        }
+
+        // BƯỚC C: IN RA MÀN HÌNH
+        render(ketQuaLoc);
+      }
+
+      // --- CHẠY LẦN ĐẦU KHI MỞ TRANG ---
+      render(products);
+
+      // 5. GẮN SỰ KIỆN CHO CÁC NÚT BẤM (CHỈ CẦN CẬP NHẬT TRÍ NHỚ RỒI GỌI HÀM)
+
+      // A. Sự kiện gõ tìm kiếm
+      const oTimKiem = document.getElementById("o-tim-kiem");
+      oTimKiem.addEventListener("input", function (event) {
+        tuKhoaHienTai = event.target.value.toLowerCase();
+        chayBoLocTongHop();
+      });
+
+      // B. Sự kiện bấm các nút lọc giá (Dùng querySelectorAll vì có nhiều nút)
+      const cacNutGia = document.querySelectorAll(".btn-loc-gia");
+      cacNutGia.forEach(function (nut) {
+        nut.addEventListener("click", function (event) {
+          giaToiDaHienTai = Number(event.target.dataset.gia);
+          chayBoLocTongHop();
+        });
+      });
+
+      // C. Sự kiện sắp xếp
+      document
+        .getElementById("btn-sap-xep-tang")
+        .addEventListener("click", function () {
+          kieuSapXepHienTai = "tang";
+          chayBoLocTongHop();
+        });
+
+      document
+        .getElementById("btn-sap-xep-giam")
+        .addEventListener("click", function () {
+          kieuSapXepHienTai = "giam";
+          chayBoLocTongHop();
+        });
+
+      // D. Sự kiện Xóa bộ lọc (Reset)
+      document
+        .getElementById("btn-xoa-loc")
+        .addEventListener("click", function () {
+          // Xóa trí nhớ
+          tuKhoaHienTai = "";
+          giaToiDaHienTai = Infinity;
+          kieuSapXepHienTai = "mac_dinh";
+
+          // Xóa giao diện ô input
+          oTimKiem.value = "";
+
+          // Gọi lại Tổng tư lệnh
+          chayBoLocTongHop();
+        });
+    </script>
+  </body>
+</html>
