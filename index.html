@@ -74,7 +74,6 @@
 
       <div>
         <strong>Lọc theo giá:</strong>
-        <!-- Gắn mức giá vào dataset -->
         <button class="btn-loc-gia" data-gia="500000">Dưới 500k</button>
         <button class="btn-loc-gia" data-gia="2000000">Dưới 2 Triệu</button>
       </div>
@@ -90,20 +89,19 @@
       </div>
     </div>
 
-    <!-- KHU VỰC HIỂN THỊ KẾT QUẢ -->
     <div id="hien-thi"></div>
 
     <script>
-      // 1. DỮ LIỆU GỐC (Dùng const để khóa chặt, không bao giờ thay đổi biến này)
-      const products = [
-        { id: 1, name: "Laptop Dell Latitude 5411", price: 12000000 },
+      //Dữ liệu gốc
+        const products = [
+        { id: 1, name: "Vinfast VF3", price: 300000000 },
         { id: 2, name: "Bàn phím cơ Logitech", price: 850000 },
         { id: 3, name: "Loa XDOBO X8 Max", price: 1500000 },
         { id: 4, name: "Sữa rửa mặt CeraVe", price: 350000 },
-        { id: 5, name: "Kem chống nắng Sunplay Skin Aqua", price: 200000 },
+        { id: 5, name: "Bàn học IKEA", price: 1000000 },
       ];
 
-      // 2. HÀM IN GIAO DIỆN (RENDER)
+      // 2.Hàm hiển thị
       function render(danhSach) {
         const vungHienThi = document.getElementById("hien-thi");
 
@@ -124,50 +122,35 @@
         vungHienThi.innerHTML = htmlArray.join("");
       }
 
-      // 3. TỔNG BỘ TƯ LỆNH: Nơi lưu trữ trí nhớ của bộ lọc
+    
       let tuKhoaHienTai = "";
       let giaToiDaHienTai = Infinity;
-      let kieuSapXepHienTai = "mac_dinh"; // Có thể là: "mac_dinh", "tang", "giam"
-
-      // 4. TỔNG BỘ TƯ LỆNH: Hàm xử lý chính
+      let kieuSapXepHienTai = "mac_dinh";
+      //3. Sắp xếp
       function chayBoLocTongHop() {
-        // BƯỚC A: LỌC DỮ LIỆU
         const ketQuaLoc = products.filter(function (item) {
-          // Điều kiện 1: Tên chứa từ khóa
           const thoaManTuKhoa = item.name.toLowerCase().includes(tuKhoaHienTai);
-
-          // Điều kiện 2: Giá nhỏ hơn hoặc bằng giá tối đa
           const thoaManGia = item.price <= giaToiDaHienTai;
-
-          // Phải thỏa mãn cả 2 thì mới giữ lại
           return thoaManTuKhoa && thoaManGia;
         });
 
-        // BƯỚC B: SẮP XẾP TRÊN KẾT QUẢ ĐÃ LỌC
-        // (Lúc này ketQuaLoc là một mảng mới tinh do filter tạo ra, nên ta cứ thoải mái dùng sort mà không sợ hỏng products gốc)
         if (kieuSapXepHienTai === "tang") {
           ketQuaLoc.sort((a, b) => a.price - b.price);
         } else if (kieuSapXepHienTai === "giam") {
           ketQuaLoc.sort((a, b) => b.price - a.price);
         }
-
-        // BƯỚC C: IN RA MÀN HÌNH
         render(ketQuaLoc);
       }
 
-      // --- CHẠY LẦN ĐẦU KHI MỞ TRANG ---
       render(products);
 
-      // 5. GẮN SỰ KIỆN CHO CÁC NÚT BẤM (CHỈ CẦN CẬP NHẬT TRÍ NHỚ RỒI GỌI HÀM)
-
-      // A. Sự kiện gõ tìm kiếm
+      // 4.thêm sự kiện
       const oTimKiem = document.getElementById("o-tim-kiem");
       oTimKiem.addEventListener("input", function (event) {
         tuKhoaHienTai = event.target.value.toLowerCase();
         chayBoLocTongHop();
       });
 
-      // B. Sự kiện bấm các nút lọc giá (Dùng querySelectorAll vì có nhiều nút)
       const cacNutGia = document.querySelectorAll(".btn-loc-gia");
       cacNutGia.forEach(function (nut) {
         nut.addEventListener("click", function (event) {
@@ -176,7 +159,6 @@
         });
       });
 
-      // C. Sự kiện sắp xếp
       document
         .getElementById("btn-sap-xep-tang")
         .addEventListener("click", function () {
@@ -190,20 +172,14 @@
           kieuSapXepHienTai = "giam";
           chayBoLocTongHop();
         });
-
-      // D. Sự kiện Xóa bộ lọc (Reset)
+    //Xóa lọc
       document
         .getElementById("btn-xoa-loc")
         .addEventListener("click", function () {
-          // Xóa trí nhớ
           tuKhoaHienTai = "";
           giaToiDaHienTai = Infinity;
           kieuSapXepHienTai = "mac_dinh";
-
-          // Xóa giao diện ô input
           oTimKiem.value = "";
-
-          // Gọi lại Tổng tư lệnh
           chayBoLocTongHop();
         });
     </script>
